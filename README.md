@@ -1,9 +1,9 @@
 # Generalized Connect Four bot
 ## Video demo: https://youtu.be/w0epFK8nG_g
-## Description:
+## Description
 A bot to play any variations of Connect Four, whether that's on a 10x10 board instead of the original 7x6 board, or playing for 5, 6,... in a line instead of 4
 
-## Usage/Installation:
+## Usage/Installation
 Requires Python.
 
 Developed with Python 3.10, as such I do not know if this is compatible with older versions of Python, so Python 3.10 is recommended.
@@ -18,12 +18,12 @@ python graphics.py
 ```
 to play the pygame version of the game. Requires [pygame](https://www.pygame.org/wiki/GettingStarted#Pygame%20Installation)
 
-## Source files:
+## Source files
 - console.py: The console version of the game
 - graphics.py: The pygame version of the game. Requires [pygame](https://www.pygame.org/wiki/GettingStarted#Pygame%20Installation)
 - basics.py: Where all the magic happens. Change the constants ROWS, COLS, CONNECT, at the top of the file to change the configuration of the Connect version you wish to play.
 
-## Approach:
+## Approach
 
 ### Heuristic:
 The heuristic of each state is calculated by counting the number of open-3s (or rather, number of connect - 1) of each side while also accounting for how many moves does it take to make a full line with that open line, then calculate the difference between the 2 players. If the heuristic is positive, then the maximizing player has the advantage, and vice versa.
@@ -40,7 +40,7 @@ To offset this, the list of possible moves is (naively) sorted before looping th
 
 All of this is to say: I sorted the list of possible moves in order of the manhanttan distance of each move to the center of the board. There's no consideration to the current state of the game, hence 'naive'.
 
-## References:
+## References
 [CS50 2020 - Artificial Intelligence](https://youtu.be/eey91kzfOZs) CS50 Lecture on AI by Brian Yu. If you want a complete beginner lecture on AI for people who are familiar with programming but absolutely not a single thing about AI, this is where to start, because before this I know as much about AI as I do about working for NASA. (Not to say that I'm any closer to working for NASA now than I was before but I did manage to write this bot)
 
 [Algorithms Explained – minimax and alpha-beta pruning](https://youtu.be/l-hh51ncgDI) A visualization of both vanilla minimax and minimax with alpha-beta pruning with explanation and code example by Sebastian Lague. An absolute godsent of a video and I cannot stress how highly I recommend it.
