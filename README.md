@@ -45,4 +45,4 @@ All of this is to say: I sorted the list of possible moves in order of the manha
 
 [Algorithms Explained – minimax and alpha-beta pruning](https://youtu.be/l-hh51ncgDI) A visualization of both vanilla minimax and minimax with alpha-beta pruning with explanation and code example by Sebastian Lague. An absolute godsent of a video and I cannot stress how highly I recommend it.
 
-[Connect 4 AI: How it Works](https://roadtolarissa.com/connect-4-ai-how-it-works/) Part 1 of a blog post by someone else who wrote their own Connect Four AI. This is where I got my idea for the heuristic function, in which I added my weight system to this idea.
+[Connect 4 AI: How it Works](https://roadtolarissa.com/connect-4-ai-how-it-works/) Part 1 of a blog post by Adam Pearce. This is where I got my idea for the heuristic function, in which I added my weight system to this idea.
