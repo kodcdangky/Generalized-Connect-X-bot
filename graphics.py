@@ -1,3 +1,5 @@
+from time import perf_counter, sleep
+
 import pygame as pg
 
 from basics import minimax_pruning as minimax, is_finished, get_rows, get_columns, get_connection, get_depth, ConfigurationError
@@ -194,9 +196,13 @@ def main():
             # bot's turn
             if turn != player:
                 # Update game state
+                before = perf_counter()
                 move = minimax(state, DEPTH, turn)['move']
                 state[move[0]][move[1]] = turn
                 turn = -turn
+                time_spent = perf_counter() - before
+                if time_spent < 0.5:
+                    sleep(0.5 - time_spent)
 
                 # Draw bot's cell
                 cell = pg.Surface((board.get_width() / COLS - 3, board.get_height() / ROWS - 3))
