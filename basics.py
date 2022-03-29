@@ -6,6 +6,7 @@ COLS = 8
 CONNECT = 4
 DEPTH = 4
 
+
 class ConfigurationError(Exception):
     pass
 
@@ -35,44 +36,51 @@ def _is_finished(state: list, last_turn: int, last_move: tuple[int, int]) -> int
     def n_s():
         if row >= ROWS - CONNECT + 1:
             return False
-        return len({state[row + i][col] for i in range(CONNECT)}) == 1
+        # return all(state[row][col] == state[row + i][col] for i in range(1, CONNECT))
+        for i in range(1, CONNECT):
+            if state[row][col] != state[row + i][col]:
+                return False
+        return True
 
     def w_e():
         for i in range(0, -CONNECT, -1):
-            if col + i not in range(COLS - CONNECT + 1):
-                continue
-            line = set()
-            for j in range(i, i + CONNECT):
-                line.add(state[row][col + j])
-            if len(line) == 1:
-                return True
+            if col + i in range(COLS - CONNECT + 1):
+                # if all(state[row][col + i] == state[row][col + j] for j in range(i + 1, i + CONNECT)):
+                #     return True
+                for j in range(i + 1, i + CONNECT):
+                    if state[row][col + i] != state[row][col + j]:
+                        break
+                else:
+                    return True
         return False
 
     def nw_se():
         for i in range(0, -CONNECT, -1):
-            if col + i not in range(COLS - CONNECT + 1) or row + i not in range(ROWS - CONNECT + 1):
-                continue
-            line = set()
-            for j in range(i, i + CONNECT):
-                line.add(state[row + j][col + j])
-            if len(line) == 1:
-                return True
+            if col + i in range(COLS - CONNECT + 1) and row + i in range(ROWS - CONNECT + 1):
+                # if all(state[row + i][col + i] == state[row + j][col + j] for j in range(i + 1, i + CONNECT)):
+                #     return True
+                for j in range(i + 1, i + CONNECT):
+                    if state[row + i][col + i] != state[row + j][col + j]:
+                        break
+                else:
+                    return True
         return False
 
     def sw_ne():
         for i in range(0, -CONNECT, -1):
-            if col + i not in range(COLS - CONNECT + 1) or row - i not in range(CONNECT, ROWS):
-                continue
-            line = set()
-            for j in range(i, i + CONNECT):
-                line.add(state[row - j][col + j])
-            if len(line) == 1:
-                return True
+            if col + i in range(COLS - CONNECT + 1) and row - i in range(CONNECT, ROWS):
+                # if all(state[row - i][col + i] == state[row - j][col + j] for j in range(i + 1, i + CONNECT)):
+                #     return True
+                for j in range(i + 1, i + CONNECT):
+                    if state[row - i][col + i] != state[row - j][col + j]:
+                        break
+                else:
+                    return True
         return False
 
     row, col = last_move
 
-    if any((n_s(), w_e(), nw_se(), sw_ne())):
+    if n_s() or w_e() or nw_se() or sw_ne():
         return last_turn
 
     # if no winner was found, check if all cells are filled, if not, game is not finished
@@ -163,7 +171,7 @@ def _minimax_pruning(state: list, depth: int, turn: int, alpha: float = float('-
         # child state score is +infinity, or -infinity, depending on if winner is the maximizing player or not, respectively
         # or 0 if child state is a draw
         if finished is not False:
-            option =  {'move': possible_move, 'score': 0 if finished == 0 else finished * float('inf'), 'depth': depth - 1}
+            option = {'move': possible_move, 'score': 0 if finished == 0 else finished * float('inf'), 'depth': depth - 1}
 
         # if child state is not a finished state, recur
         else:
@@ -186,13 +194,8 @@ def _minimax_pruning(state: list, depth: int, turn: int, alpha: float = float('-
         if beta < alpha:
             break
 
-    # if it's the maximizing player, sort list of options in descending order by score
-    if turn == 1:
-        sorted_options.sort(key=lambda option: option['score'], reverse=True)
-
-    # if it's the minimizing player, sort list of options in ascending order by score
-    else:
-        sorted_options.sort(key=lambda option: option['score'])
+    # if it's the maximizing player, sort list of options in descending order by score, or vice versa
+    sorted_options.sort(key=lambda option: option['score'], reverse=True if turn == 1 else False)
 
     best_score = sorted_options[0]['score']
 
