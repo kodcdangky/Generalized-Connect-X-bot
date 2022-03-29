@@ -1,4 +1,4 @@
-from time import sleep
+from time import sleep, perf_counter
 
 from basics import get_rows, get_columns, get_connection, get_depth, minimax_pruning, clean, is_finished, ConfigurationError
 
@@ -60,9 +60,13 @@ def play():
                             state[row][col] = turn
                             break
                 else:
+                    before = perf_counter()
                     option = minimax_pruning(state, DEPTH, turn)
                     move = option['move']
                     state[move[0]][move[1]] = turn
+                    spent = perf_counter() - before
+                    if spent < 0.5:
+                        sleep(0.5 - spent)
 
                 print(f'{clean(state)}\n')
 
