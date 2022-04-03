@@ -1,7 +1,6 @@
 # Generalized Connect Four bot
-## Video demo: https://youtu.be/w0epFK8nG_g
-## Description
 A bot to play any variations of Connect Four, whether that's on a 10x10 board instead of the original 7x6 board, or playing for 5, 6,... in a line instead of 4
+## Video demo: https://youtu.be/w0epFK8nG_g
 
 ## Usage/Installation
 Requires Python 3.10.
