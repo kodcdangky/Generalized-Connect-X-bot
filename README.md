@@ -40,7 +40,7 @@ All of this is to say: I sorted the list of possible moves in order of the Manha
 ## Final thoughts
 With some changes, this bot can be used to play any generalized version of Tic Tac Toe as well, although it would have to either return to the normal pruning approach, or sort the list of possible moves more intelligently, as on any same board size, Tic Tac Toe has many more possible moves than Connect Four. (As I'm writing this, my first thought about sorting the list of possible moves is to sort moves by how far away they are from any cluster of non-empty cells, maybe that's enough? Probably not though)
 
-As for how well the bot can play, I am fairly satisfied with the heuristic I am using currently. While it certainly could be better, this heuristic was easy to implement, and I could only sometimes beat it. (Although to be fair I have not played a single Connect Four game before I made this bot, so most likely I'm just a bad player ¯\_(ツ)_/¯ )
+As for how well the bot can play, I am fairly satisfied with the heuristic I am using currently. While it certainly could be better, this heuristic was easy to implement, and I could only sometimes beat it. (Although to be fair I have not played a single Connect Four game before I made this bot, so most likely I'm just a bad player ¯\\\_(ツ)_/¯ )
 
 ## References
 [CS50 2020 - Artificial Intelligence](https://youtu.be/eey91kzfOZs) CS50 Lecture on AI by Brian Yu. If you want a complete beginner lecture on AI for people who are familiar with programming but absolutely not a single thing about AI, this is where to start, because before this I know as much about AI as I do about working for NASA. (Not to say that I'm any closer to working for NASA now than I was before but I did manage to write this bot)
