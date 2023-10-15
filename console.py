@@ -1,14 +1,6 @@
 from time import sleep, perf_counter
 
-from logic import (
-    ROWS,
-    COLS,
-    CONNECT,
-    DEPTH,
-    minimax_pruning,
-    is_finished,
-    ConfigurationError,
-)
+from logic import ROWS, COLS, CONNECT, DEPTH, minimax_pruning, is_finished, ConfigError, State
 
 
 def play():
@@ -20,7 +12,7 @@ def play():
         raise ValueError("Configuration constants have incorrect values")
 
     elif CONNECT > ROWS and CONNECT > COLS:
-        raise ConfigurationError("CONNECT is longer than both ROWS and COLS")
+        raise ConfigError("CONNECT is longer than both ROWS and COLS")
 
     while True:
         try:
@@ -30,36 +22,34 @@ def play():
             print("--- NEW GAME ---")
             print()
 
-            turn = 1
-            state: list[list[int | None]] = [[None for _ in range(COLS)] for _ in range(ROWS)]
+            turn = State.RED
+            state: list[list[State]] = [
+                [State.UNFINISHED for _ in range(COLS)] for _ in range(ROWS)
+            ]
             print(_clean(state))
             while True:
                 if turn == player:
-                    col = _get_player_move(state) - 1
-                    for row in reversed(range(ROWS)):
-                        if state[row][col] is None:
-                            move = row, col
-                            state[row][col] = turn
-                            break
+                    row, col = _get_player_move(state)
+                    state[row][col] = turn
                 else:
                     before = perf_counter()
                     option = minimax_pruning(state, DEPTH, turn)
-                    move = option["move"]
-                    state[move[0]][move[1]] = turn
+                    row, col = option["move"]
+                    state[row][col] = turn
                     spent = perf_counter() - before
                     if spent < 0.5:
                         sleep(0.5 - spent)
 
                 print(f"{_clean(state)}\n")
 
-                finished = is_finished(state, move)
-                if finished is not False:
+                finished = is_finished(state, (row, col))
+                if finished:
                     match finished:
-                        case -1:
+                        case State.YELLOW:
                             print("Yellow wins!\n")
-                        case 1:
+                        case State.RED:
                             print("Red wins!\n")
-                        case 0:
+                        case State.TIED:
                             print("Draw")
                     break
                 turn = -turn
@@ -68,49 +58,48 @@ def play():
             break
 
 
-def _get_player_turn() -> int:
+def _get_player_turn() -> State:
     while True:
         player = input(
-            "Are you playing as red or yellow? Red goes first\n"
-            '(Typing "r" or "y" is sufficient): '
-        ).lower()
+            "Are you playing as red(r) or yellow(y)? Red goes first: "
+        ).strip().lower()
         match player:
             case "r" | "red":
-                return 1
+                return State.RED
             case "y" | "yellow":
-                return -1
+                return State.YELLOW
 
 
-def _get_player_move(state: list) -> int:
+def _get_player_move(state: list[list[State]]) -> tuple[int, int]:
     while True:
         try:
             move = int(
                 input(
                     f"Choose between 1-{COLS} corresponding to the column you want to drop into: "
                 )
-            )
-            if move in range(1, COLS + 1) and state[0][move - 1] is None:
-                return move
+            ) - 1
+            if move in range(COLS) and not state[0][move]:
+                for row in reversed(range(ROWS)):
+                    if not state[row][move]:
+                        return row, move
         except ValueError:
             pass
 
 
-def _clean(state: list[list[int | None]]) -> str:
+def _clean(state: list[list[State]]) -> str:
     """
-    :param state: Current game state
-    :return: A console renderred version of the game ready to be printed
+    Returns a console renderred version of the game ready to be printed
     """
-
     to_be_printed = ""
     for row in range(ROWS):
         to_be_printed += "|"
         for col in range(COLS):
             match state[row][col]:
-                case -1:
+                case State.YELLOW:
                     to_be_printed += " o "
-                case 1:
+                case State.RED:
                     to_be_printed += " x "
-                case None:
+                case State.TIED:
                     to_be_printed += "   "
             to_be_printed += "|"
         to_be_printed += "\n"

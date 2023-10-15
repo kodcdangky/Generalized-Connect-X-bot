@@ -2,15 +2,7 @@ from time import perf_counter, sleep
 
 import pygame as pg
 
-from logic import (
-    ROWS,
-    COLS,
-    CONNECT,
-    DEPTH,
-    minimax_pruning,
-    is_finished,
-    ConfigurationError,
-)
+from logic import ROWS, COLS, CONNECT, DEPTH, minimax_pruning, is_finished, ConfigError, State
 
 FPS = 30
 WHITE = (170, 170, 170)
@@ -19,6 +11,8 @@ RED = (173, 19, 19)
 YELLOW = (174, 174, 0)
 ASPECT_RATIO = (4, 3)
 FONT = "Candara"
+
+# TODO: Ask for rematch after match ends
 
 
 def main():
@@ -30,14 +24,14 @@ def main():
         raise ValueError("Configuration constants have incorrect values")
 
     elif CONNECT > ROWS and CONNECT > COLS:
-        raise ConfigurationError("CONNECT is longer than both ROWS and COLS")
+        raise ConfigError("CONNECT is longer than both ROWS and COLS")
 
     # Initialize pygame stuff
     pg.init()
     window_width = pg.display.Info().current_w * 3 // 5
     window_height = window_width * ASPECT_RATIO[1] // ASPECT_RATIO[0]
     window = pg.display.set_mode((window_width, window_height))
-    pg.display.set_caption("Connect X")
+    pg.display.set_caption(f"{ROWS}x{COLS} Connect {CONNECT}")
 
     clock = pg.time.Clock()
 
@@ -45,8 +39,7 @@ def main():
     font = pg.font.SysFont(FONT, menu_font_size)
 
     # Background
-    bground = pg.Surface((window.get_width() / 10 * 9,
-                         window.get_height())).convert()
+    bground = pg.Surface((window.get_width() / 10 * 9, window.get_height()))
     bground.fill(WHITE)
     bground_rect = bground.get_rect(
         centerx=window.get_width() / 2, centery=window.get_height() / 2
@@ -72,10 +65,10 @@ def main():
     # Initial cursor
     cursor = font.render("^", True, BLACK)
     cursor_yes_rect = cursor.get_rect(
-        centerx=bground.get_width() / 4, top=yes_rect.bottom #+ (yes.get_height() / 10)
+        centerx=bground.get_width() / 4, top=yes_rect.bottom  # + (yes.get_height() / 10)
     )
     cursor_no_rect = cursor.get_rect(
-        centerx=bground.get_width() / 4 * 3, top=no_rect.bottom #+ (no.get_height() / 10)
+        centerx=bground.get_width() / 4 * 3, top=no_rect.bottom  # + (no.get_height() / 10)
     )
 
     # Draw text on background, then background on window
@@ -91,7 +84,7 @@ def main():
     eraser.fill(WHITE)
 
     # default option
-    player = 1
+    player = State.RED
 
     menu_active = True
     game_active = False
@@ -105,18 +98,18 @@ def main():
                 match event.key:
                     case pg.K_RIGHT:  # Moving from Yes to No
                         # Can setup some sound here later
-                        if player == 1:
+                        if player == State.RED:
                             # change player
-                            player = -1
+                            player = -player
 
                             # move cursor
                             bground.blit(eraser, cursor_yes_rect)
                             bground.blit(cursor, cursor_no_rect)
                     case pg.K_LEFT:
                         # Sound?
-                        if player == -1:  # Moving from No to Yes
+                        if player == State.YELLOW:  # Moving from No to Yes
                             # change player
-                            player = 1
+                            player = -player
 
                             # move cursor
                             bground.blit(eraser, cursor_no_rect)
@@ -132,14 +125,12 @@ def main():
         pg.display.update()
 
     if game_active:
-        font = pg.font.SysFont(FONT, int(menu_font_size / 1.8))
-
         # set initial turn, initial cursor choice and game state
-        turn = 1
+        turn = State.RED
         choice = 0
-        finished = False
-        state: list[list[int | None]] = [
-            [None for _ in range(COLS)] for _ in range(ROWS)
+        finished = State.UNFINISHED
+        state: list[list[State]] = [
+            [State.UNFINISHED for _ in range(COLS)] for _ in range(ROWS)
         ]
 
         # draw initial board
@@ -177,6 +168,7 @@ def main():
         bground.fill(WHITE)
         bground.blit(board, board_rect)
 
+        font = pg.font.SysFont(FONT, int(menu_font_size / 1.8))
         # draw initial cursor position
         cursor = font.render("^", True, BLACK)
         cursor_rect = cursor.get_rect(
@@ -205,40 +197,23 @@ def main():
 
             if not finished:
                 # update status to indicate whose turn is it
-                if turn == player:
-                    status = _wrapped_text(
-                        "Your turn",
-                        font,
-                        WHITE,
-                        BLACK,
-                        bground.get_width() - board.get_width() - 10,
-                    )
-                else:
-                    status = _wrapped_text(
-                        "Thinking ...",
-                        font,
-                        WHITE,
-                        BLACK,
-                        bground.get_width() - board.get_width() - 10,
-                    )
+                status = _wrapped_text(
+                    "Your turn" if turn == player else "Thinking ...",
+                    font,
+                    WHITE,
+                    BLACK,
+                    bground.get_width() - board.get_width() - 10,
+                )
             else:
                 # update status to indicate game has ended and show result
-                if finished == 2:
-                    status = _wrapped_text(
-                        "Draw",
-                        font,
-                        WHITE,
-                        BLACK,
-                        bground.get_width() - board.get_width() - 10,
-                    )
-                else:
-                    status = _wrapped_text(
-                        "You win!" if finished == player else "Bot wins!",
-                        font,
-                        WHITE,
-                        RED if finished == 1 else YELLOW,
-                        bground.get_width() - board.get_width() - 10,
-                    )
+                status = _wrapped_text(
+                    "Draw" if finished == State.TIED else "You win!" if finished == player else "Bot wins!",
+                    font,
+                    WHITE,
+                    BLACK if finished == State.TIED else RED if finished == State.RED else YELLOW,
+                    bground.get_width() - board.get_width() - 10,
+                )
+
             status_rect = status.get_rect(
                 centerx=(bground.get_width() + board.get_width()) / 2,
                 centery=board.get_height() / 2,
@@ -262,26 +237,28 @@ def main():
             if turn != player:
                 # Update game state
                 before = perf_counter()
-                move = minimax_pruning(state, DEPTH, turn)["move"]
-                state[move[0]][move[1]] = turn
+                row, col = minimax_pruning(state, DEPTH, turn)["move"]
+                state[row][col] = turn
                 turn = player
-                time_spent = perf_counter() - before
-                if time_spent < 0.5:
-                    sleep(0.5 - time_spent)
 
                 # Draw bot's cell
                 cell = pg.Surface(
                     (board_side / COLS - 3, board_side / ROWS - 3)
                 )
-                cell.fill(RED if player == -1 else YELLOW)
+                cell.fill(RED if player == State.YELLOW else YELLOW)
                 cell_rect = cell.get_rect(
-                    centerx=board_side / COLS * (move[1] + 0.5),
-                    centery=board_side / ROWS * (move[0] + 0.5),
+                    centerx=board_side / COLS * (col + 0.5),
+                    centery=board_side / ROWS * (row + 0.5),
                 )
                 board.blit(cell, cell_rect)
                 bground.blit(board, board_rect)
 
-                finished = is_finished(state, move)
+                # Bot's turn last a minimum of 0.5s
+                time_spent = perf_counter() - before
+                if time_spent < 0.5:
+                    sleep(0.5 - time_spent)
+
+                finished = is_finished(state, (row, col))
 
             for event in pg.event.get():
                 if event.type == pg.QUIT:
@@ -323,19 +300,18 @@ def main():
                             # Register player's choice only during player's turn
                             if turn == player:
                                 for row in reversed(range(ROWS)):
-                                    if state[row][choice] is None:
+                                    if not state[row][choice]:
                                         # Update game state
-                                        move = (row, choice)
                                         state[row][choice] = player
                                         turn = -turn
 
                                         # Draw player's cell
                                         cell = pg.Surface(
                                             (board_side / COLS - 3,
-                                             board_side / ROWS - 3)
+                                                board_side / ROWS - 3)
                                         )
-                                        cell.fill(RED if player == 1
-                                                  else YELLOW)
+                                        cell.fill(RED if player == State.RED
+                                                    else YELLOW)
                                         cell_rect = cell.get_rect(
                                             center=(board_side / COLS * (choice + 0.5),
                                                     board_side / ROWS * (row + 0.5))
@@ -344,7 +320,8 @@ def main():
                                         bground.blit(board, board_rect)
 
                                         # check if game over
-                                        finished = is_finished(state, move)
+                                        finished = is_finished(
+                                            state, (row, choice))
                                         break
                         case pg.K_ESCAPE:
                             game_active = False
