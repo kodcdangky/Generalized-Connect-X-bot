@@ -80,8 +80,8 @@ def is_finished(state: list[list[State]], last_move: tuple[int, int]) -> State:
     if any((n_s(), w_e(), nw_se(), sw_ne())):
         return state[row][col]
 
-    # if no winner was found, check if all cells are filled, if not, game is not finished
-    if any(State.UNFINISHED in state[row] for row in range(ROWS)):
+    # if no winner was found, check if all top row cells are filled, if not, game is not finished
+    if State.UNFINISHED in state[0]:
         return State.UNFINISHED
 
     # all cells are filled and no winner was found, therefore game is drawn
